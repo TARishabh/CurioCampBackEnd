@@ -19,7 +19,7 @@ from django.urls import path,include,re_path
 # from agora.views import Agora
 from django.conf import settings
 from django.conf.urls.static import static
-from courses.views import createOrder,verifySignature,getTransactionDetails
+from courses.views import createOrder,verifySignature,getTransactionDetails,updateprogress
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,6 +28,8 @@ urlpatterns = [
     path('createOrder/', createOrder),
     path('verifySignature/', verifySignature),
     path('getTransactionDetails/', getTransactionDetails),
+    path('updateprogress/', updateprogress),
+    
     # path('agora/',Agora.as_view(app_id='<APP_ID>',channel='<CHANNEL_ID>')),
 ]
 

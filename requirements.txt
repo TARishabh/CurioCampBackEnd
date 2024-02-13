@@ -10,3 +10,4 @@ django-channels==0.7.0
 razorpay==1.4.1
 Pyrebase4==4.7.1
 django-unfold==0.20.3
+django-admin-soft-dashboard==1.0.12

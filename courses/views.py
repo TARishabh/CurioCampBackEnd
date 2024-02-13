@@ -5,7 +5,7 @@ from user.models import User
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.http import Http404
-from courses.serializer import CourseSerializer,ModuleSerializer,ContentSerializer,EnrollmentSerializer,ProgressSerializer,EnrollmentListSerializer,RazorPayOrderSerializer
+from courses.serializer import CourseSerializer,ModuleSerializer,ContentSerializer,EnrollmentSerializer,ProgressSerializer,EnrollmentListSerializer,RazorPayOrderSerializer,ProgressUpdateSerializer
 from datetime import datetime, timedelta
 from rest_framework.decorators import permission_classes,authentication_classes
 from rest_framework.permissions import IsAuthenticated, BasePermission
@@ -102,10 +102,17 @@ class CourseViewSet(viewsets.ModelViewSet):
         # print(request.user, "*"*50)
         course = self.request.query_params.get('course')
         keyword = self.request.query_params.get('keyword')
+        purchased = self.request.query_params.get('purchased')
+        user = self.request.query_params.get('user')
         if keyword:
             queryset = Course.objects.filter(keyword__icontains=keyword)
         elif course:
             queryset = Course.objects.filter(title__icontains=course)
+        elif purchased:
+            enrolled = Enrollment.objects.filter(student=user)
+            courses_list = enrolled.values_list('course',flat=True)
+            queryset = Course.objects.filter(id__in=courses_list)
+
         else:
             queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
@@ -336,16 +343,22 @@ def verifySignature(request):
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def getTransactionDetails(request):
-    data = request.data
-    user_id = request.query_params.get('user')
-    user = User.objects.get(id=int(user_id))
-    if request.user != user:
-        api_response = responsegenerator(status=status.HTTP_401_UNAUTHORIZED, message='You do not have permission')
+    try:
+        data = request.data
+        user_id = request.query_params.get('user')
+        user = User.objects.get(id=int(user_id))
+        if request.user != user:
+            api_response = responsegenerator(status=status.HTTP_401_UNAUTHORIZED, message='You do not have permission')
+            return Response(api_response)
+        queryset = Enrollment.objects.filter(student=int(user_id))
+        serializer = EnrollmentListSerializer(queryset,many=True)
+        api_response = responsegenerator(status=status.HTTP_200_OK,results=serializer.data)
         return Response(api_response)
-    queryset = Enrollment.objects.filter(student=int(user_id))
-    serializer = EnrollmentListSerializer(queryset,many=True)
-    api_response = responsegenerator(status=status.HTTP_200_OK,results=serializer.data)
-    return Response(api_response)
+    except Exception as e:
+        print(e)
+        api_response = responsegenerator(status=status.HTTP_500_INTERNAL_SERVER_ERROR, message='Something went wrong.')
+        return Response(api_response)
+
 
 import pyrebase
 
@@ -370,3 +383,73 @@ database = firebase.database()
 def postquestionfirebase(request):
     # channel_name = database.child('Data').child('Name').get().val()
     pass
+
+
+
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+@api_view(['POST'])
+def updateprogress(request):
+    try:
+        data = request.data 
+        # module_id = int(data.get('module'))
+        # course_id = int(data.get('course'))
+        # has_completed = bool(data.get('is_completed'))
+        
+        user = User.objects.get(id=request.user.id)
+    
+        if request.user != user:
+            api_response = responsegenerator(status=status.HTTP_401_UNAUTHORIZED,message='You Do not have Permission')
+            return Response(api_response)
+        
+        if request.method == 'PATCH':
+            progress_id = data.get('progress')
+            has_completed = data.get('is_completed')
+            instance = Progress.objects.get(id=int(progress_id))
+            instance.is_completed = has_completed
+            instance.save()
+            api_response = responsegenerator(status=status.HTTP_200_OK, message="Updated Successfully.")
+            return Response(api_response)
+
+        
+        serializer = ProgressSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            api_response = responsegenerator(status=status.HTTP_200_OK, results=serializer.data, message="Completed Successfully.")
+            return Response(api_response)
+        api_response = responsegenerator(status=status.HTTP_400_BAD_REQUEST, errors=serializer.errors)
+        return Response(api_response)
+
+    except Exception as e:
+        print(e)
+        api_response = responsegenerator(status=status.HTTP_500_INTERNAL_SERVER_ERROR, message='Something went wrong.')
+        return Response(api_response)
+
+
+
+# @authentication_classes([JWTAuthentication])
+# @permission_classes([IsAuthenticated])
+# @api_view(['POST'])
+# def updateContentProgress(request):
+#     try:
+#         data = request.data
+#         content_id = int(data.get('content'))
+#         has_completed = bool(data.get('is_completed'))
+        
+#         user = User.objects.get(id=request.user.id)
+#         if request.user != user:
+#             api_response = responsegenerator(status=status.HTTP_401_UNAUTHORIZED,message='You Do not have Permission')
+#             return Response(api_response)
+        
+#         content = Content.objects.get(id=content_id)
+#         content.is_completed = has_completed
+#         content.save()
+        
+#         api_response = responsegenerator(status=status.HTTP_200_OK,message='Completed Successfully')
+#         return Response(api_response)
+
+#     except Exception as e:
+#         print(e)
+#         api_response = responsegenerator(status=status.HTTP_500_INTERNAL_SERVER_ERROR, message='Something went wrong.')
+#         return Response(api_response)
+

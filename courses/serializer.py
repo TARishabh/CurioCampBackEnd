@@ -65,4 +65,9 @@ class EnrollmentListSerializer(serializers.ModelSerializer):
 class ProgressSerializer(serializers.ModelSerializer):
     class Meta(object):
         model = Progress
-        fields = ['id','user','course','module','content','completed_at']
+        fields = ['id','user','course','module','content','completed_at','is_completed']
+
+class ProgressUpdateSerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = Progress
+        fields = ['id','completed_at']
