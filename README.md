@@ -55,13 +55,3 @@ Content: Individual learning materials that deliver knowledge and skills within 
 
 ## there should be a quality check of teachers by various modules when he is becoming a instructor.
 
-
-App ID:c78421a2fd1e4401b03972dde3a9774b
-App certificate: 97c907c6323b4f8787c76310216cef2a
-channel Name : LiveStreamingHackathon
-token : 007eJxTYNBRYX5S0fOxd+sMTt2e+JBfLd1cTle7JfgvbQ2TenbmiZsCQ7K5hYmRYaJRWophqomJgWGSgbGluVFKSqpxoqW5uUkS273jqQ2BjAwTLgayMjJAIIgvxuCTWZYaXFKUmpibmZfukZicnViSkZ/HwAAAmAcmRQ==
-
-
-
-key: rzp_test_5uFkpY7sQJWElt
-secret key: eNZWVPYdNAvzHQFKIZr2kPJF
